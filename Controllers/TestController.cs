@@ -116,6 +116,31 @@ public class TestController : ControllerBase
         // This allows runtime errors to be logged to the error reporting endpoint
     }
 
+    // GET: api/test/count
+    [HttpGet("count")]
+    public async Task<IActionResult> Count()
+    {
+        try
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            await conn.OpenAsync();
+
+            // Set search_path to public schema (required because isolated role has restricted search_path)
+            using var setPathCmd = new NpgsqlCommand("SET search_path = public, \"" + "$" + "user\";", conn);
+            await setPathCmd.ExecuteNonQueryAsync();
+
+            using var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM \"TestProjects\"", conn);
+            var count = Convert.ToInt64(await cmd.ExecuteScalarAsync());
+            return Ok(new { count });
+        }
+        catch (PostgresException ex) when (ex.SqlState == "42P01") // Table does not exist
+        {
+            // Same graceful fallback as GetAll: an uninitialized schema has zero projects
+            return Ok(new { count = 0 });
+        }
+        // Do NOT catch generic Exception - let it bubble up to GlobalExceptionHandlerMiddleware
+    }
+
     // GET: api/test/5
     [HttpGet("{id}")]
     public async Task<ActionResult<TestProjects>> Get(int id)
