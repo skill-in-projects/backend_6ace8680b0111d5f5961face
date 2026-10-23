@@ -1,10 +1,13 @@
 // Test push to 1-B-1
+using Backend.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<ProjectNotesStore>();
 
 // CORS configuration - Allow GitHub Pages and all origins
 builder.Services.AddCors(options =>
