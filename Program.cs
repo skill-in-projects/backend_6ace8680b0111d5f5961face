@@ -8,6 +8,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<ProjectNotesStore>();
+builder.Services.AddSingleton<GranmaStore>();
 
 // CORS configuration - Allow GitHub Pages and all origins
 builder.Services.AddCors(options =>
