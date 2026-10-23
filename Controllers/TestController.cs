@@ -129,7 +129,7 @@ public class TestController : ControllerBase
             using var setPathCmd = new NpgsqlCommand("SET search_path = public, \"" + "$" + "user\";", conn);
             await setPathCmd.ExecuteNonQueryAsync();
 
-            using var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM \"TestProjects\"", conn);
+            using var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM \"TestProjects\" WHERE \"Name\" > 0", conn);
             var count = Convert.ToInt64(await cmd.ExecuteScalarAsync());
             return Ok(new { count });
         }
