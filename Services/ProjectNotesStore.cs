@@ -5,7 +5,9 @@ namespace Backend.Services;
 
 /// <summary>
 /// Database access for the ProjectNotes table. Creates the table and sample rows on first use,
-/// so no manual SQL is needed. Each note belongs to a row in TestProjects.
+/// so no manual SQL is needed. Each note belongs to a row in TestProjects by id. There is no
+/// foreign key: the isolated DB role may read TestProjects but cannot REFERENCES it, so the
+/// controller checks that the project exists before reading or writing notes.
 /// </summary>
 public class ProjectNotesStore
 {
@@ -71,7 +73,7 @@ public class ProjectNotesStore
             await using (var createCmd = new NpgsqlCommand(
                 "CREATE TABLE IF NOT EXISTS \"ProjectNotes\" (" +
                 "\"Id\" INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, " +
-                "\"ProjectId\" INTEGER NOT NULL REFERENCES \"TestProjects\"(\"Id\") ON DELETE CASCADE, " +
+                "\"ProjectId\" INTEGER NOT NULL, " +
                 "\"Text\" VARCHAR(2000) NOT NULL, " +
                 "\"CreatedAt\" TIMESTAMPTZ NOT NULL DEFAULT now())", conn))
             {
