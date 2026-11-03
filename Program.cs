@@ -11,6 +11,27 @@ builder.Services.AddSingleton<ProjectNotesStore>();
 builder.Services.AddSingleton<GranmaStore>();
 builder.Services.AddSingleton<AbaStore>();
 builder.Services.AddSingleton<EmployeeStore>();
+builder.Services.AddSingleton<UserStore>();
+
+// Checks the JWT that the frontend sends after Google sign-in (only endpoints marked [Authorize] use it)
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
+builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = Backend.Controllers.AuthController.Issuer,
+            ValidateAudience = true,
+            ValidAudience = Backend.Controllers.AuthController.Audience,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            // With no JWT_SECRET set, no key is given, so every token is rejected
+            IssuerSigningKey = string.IsNullOrWhiteSpace(jwtSecret)
+                ? null
+                : new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSecret))
+        };
+    });
 
 // CORS configuration - Allow GitHub Pages and all origins
 builder.Services.AddCors(options =>
@@ -123,6 +144,7 @@ app.UseSwaggerUI();
 // CORS must be early in the pipeline, before Authorization
 app.UseCors("AllowAll");
 
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
